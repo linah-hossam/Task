@@ -57,7 +57,7 @@ export const Comment: React.FC <CommentProps> = ({comment,onDeleteClick}) => {
     <Fragment>
     <div style={{display: 'flex', justifyContent: 'left', alignItems: 'center' }}>
         <AccountCircleIcon></AccountCircleIcon>
-        {currentUser?.profile?.name}
+        {comment?.profile?.name}
         </div>
     <Box sx={{ bgcolor: 'white',margin:'10px',height:'10vh',justifyContent:'left',width:'350px',padding:'0px 10px'}} 
   >

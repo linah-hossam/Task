@@ -6,9 +6,9 @@ import { Match, check } from 'meteor/check';
 
 
 Accounts.onCreateUser((options, user) => {
-    console.log("userMethods");
-    console.log(user);
-    console.log("options:")
+    // console.log("userMethods");
+    // console.log(user);
+    // console.log("options:")
     console.log(options);
     user.profile=options.profile;
     return user;

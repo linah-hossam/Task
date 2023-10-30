@@ -1,4 +1,4 @@
-import React,{useEffect, useState} from 'react';
+import React,{Fragment, useEffect, useState} from 'react';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Article,IArticle } from './Article';
 import { FormArticle } from './FormArticle';
@@ -14,9 +14,9 @@ import { Meteor } from 'meteor/meteor';
 import Pagination from '@mui/material/Pagination';
 import { useQuery } from 'react-query';
 
-const getArticles = (id:string,page:number): Promise<[IArticle]> => {
+const getArticles = (page:number): Promise<[IArticle]> => {
     return new Promise<[IArticle]>((resolve, reject) => {
-      Meteor.call("articles.getMyArticles",id,page,(error: Error | Meteor.Error, result: [IArticle]) => {
+      Meteor.call("articles.getMyArticles",page,(error: Error | Meteor.Error, result: [IArticle]) => {
         if (error) {
             console.log(error.message);
           reject(error);
@@ -30,10 +30,21 @@ export const MyArticles = () => {
     const userId = Meteor.userId(); // Retrieve the userId
     const[count,setCount]=useState(0);
     const[page,setPage]=useState(1);
+    const[open,setOpen]=useState(false);
+    const[id,setId]=useState("");
     const deleteArticle = ({ _id }: { _id: string }) => {
-        Meteor.call('articles.remove', _id)
-     setCount(count-1)};
-   
+      setId(_id);
+      setOpen(true);
+    };
+     const handleClose=()=>{
+        setOpen(false);
+    } 
+    const handleconfirmDelete=()=>{
+        Meteor.call('comments.articledelete',id);
+        Meteor.call('articles.remove', id);
+        setOpen(false);
+        setCount(count-1)
+    }
     const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
         setPage(value);
         console.log("page changed");
@@ -68,6 +79,7 @@ export const MyArticles = () => {
   
 
 return(
+    <Fragment>
     <div style={{padding:'10px 200px',backgroundColor: 'white',textAlign:'center'}} >
     <Typography variant="h2" gutterBottom>
        Your Articles
@@ -84,12 +96,27 @@ return(
 </Stack>
 <Pagination
         page={page} 
-        count={10} // Calculate the number of pages based on the number of articles
+        count={Math.ceil(count/10)} // Calculate the number of pages based on the number of articles
         shape="rounded"
         onChange={handlePageChange}
       />
 
  </div>
+  <Modal
+  open={open}
+  onClose={handleClose}
+  aria-labelledby="modal-modal-title"
+  aria-describedby="modal-modal-description"
+>
+  <Box sx={style}>
+    <Typography id="modal-modal-title" variant="h6" component="h2">
+      Are You sure you want to delete this article?
+    </Typography>
+   <Button onClick={handleconfirmDelete}> Yes</Button>
+   <Button onClick={handleClose}>Cancel</Button>
+  </Box>
+</Modal>
+</Fragment>
 );
 
     

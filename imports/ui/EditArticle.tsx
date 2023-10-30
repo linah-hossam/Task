@@ -1,18 +1,21 @@
-import { Card, CardContent, Typography, CardActions, Button, TextField } from '@mui/material';
+import { Card, CardContent, Typography, CardActions, Button, TextField, Alert } from '@mui/material';
 import { IArticle } from './Article';
 import Divider from '@mui/material/Divider';
-import { useState ,useEffect} from 'react';
+import { useState ,useEffect, Fragment} from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useParams } from 'react-router-dom';
 import React from 'react';
 import { useQuery } from 'react-query';
+import { useNavigate } from 'react-router-dom';
 
 
 export const EditArticle: React.FC = () => {
     const {_id} = useParams<{ _id: string }>(); 
     const[articles,setArticles]=useState<any>();
+    const navigate=useNavigate();
     const[description,setDescription]=useState("");
-
+    const[editflag,setEditflag]=useState(false);
+    const [done,setDone]=useState(false);
     const getArticleData = (_id: string): Promise<IArticle> => {
         return new Promise<IArticle>((resolve, reject) => {
           Meteor.call("articles.getArticle", _id, (error: Error | Meteor.Error, result: IArticle) => {
@@ -41,9 +44,21 @@ export const EditArticle: React.FC = () => {
       };
     const handledone=()=>{
         if (data?._id) {
-          updateArticle(data?._id, description);
+            if(description===""){
+                console.log("description is empty");
+                setEditflag(true);
+            }else{
+                updateArticle(data?._id, description);
+                setEditflag(false);
+                setDone(true);
+
+            }
         }
     }
+
+    if(done){
+        navigate(`/articles/${_id}`)
+    }else{
     return(
         <div style={{justifyContent:'center',display:'flex',backgroundColor: 'lightgray',textAlign:'center',overflow:'auto',height:'100vh'}}>
         <Card sx={{ maxWidth: 500 ,margin:3,padding:'20px 100px'}}>        
@@ -61,6 +76,11 @@ export const EditArticle: React.FC = () => {
             onChange={handlechange}
            />    
            </CardContent>
+           {editflag?(
+                <Alert severity='warning'>Can't enter an empty description</Alert>
+           ):(
+        <Fragment></Fragment>
+           )}
         <CardActions>
           <Button size="small" onClick={handledone}>Done</Button>
         </CardActions>
@@ -68,4 +88,5 @@ export const EditArticle: React.FC = () => {
         </div>
 
     );
+           }
     }

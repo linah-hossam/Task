@@ -21,37 +21,30 @@ Meteor.methods({
 
   'articles.remove'(_id) {
     check(_id, String);
-
-    if (!this.userId) {
+    const article=Articles.collection.findOne(_id);
+    if (!this.userId||article?.createdById!=this.userId) {
       throw new Meteor.Error('Not authorized.');
+    }else{
+      Articles.collection.remove(_id);
     }
-
-    Articles.collection.remove(_id);
+    
   },
 
   'articles.update'(_id, description) {
     // check(taskId, String);
     // check(isChecked, Boolean);
  
-    if (!this.userId) {
+    const article=Articles.collection.findOne(_id);
+    if (!this.userId||article?.createdById!=this.userId) {
       throw new Meteor.Error('Not authorized.');
+    }else{
+      Articles.collection.update(_id, {
+        $set: {
+          description,
+        }
+      });
     }
-
-    Articles.collection.update(_id, {
-      $set: {
-        description,
-      }
-    });
   },
-//   'articles.getAll'(page){
-//     const skipCount = (page- 1) * 10;
-//     const articles= Articles.collection.find({}, { sort: { createdOn: -1 },limit: 10, skip: skipCount }).fetch();
-//     // console.log("helloooo");
-//     // console.log(articles);
-    
-//     return articles;
-// },
-
 'articles.getArticle'(id){
   const query = Articles.collection.createQuery({
     $filters: {
@@ -70,10 +63,10 @@ Meteor.methods({
   return query.fetchOne();
 },
 
-'articles.getMyArticles'(_id){
+'articles.getMyArticles'(){
   const query = Articles.collection.createQuery({
     $filters: {
-        createdById: _id,
+        createdById: this.userId,
     },
     $options: {
         sort: {createdOn: -1}
@@ -104,7 +97,9 @@ Meteor.methods({
     return (query.getCount());
 },
 'articles.filter'(x,page){
-    // console.log(x);
+  if(!this.userId){
+    return ("Unathorized access!");
+  }
     var searchvar  = new RegExp("^" + x);
     const query = Articles.collection.createQuery({
       $filters: {
@@ -114,7 +109,9 @@ Meteor.methods({
         ]
       },
       $options: {
-          sort: {createdOn: -1}
+          sort: {createdOn: -1},
+          limit: 10,
+          skip: (page - 1) * 10
       },
       title: 1,
       description:1,
@@ -130,7 +127,7 @@ Meteor.methods({
     commentsCount:1
 
   });
-  return query.fetch().slice((page-1)*10,page*10);
+  return query.fetch();
 },
 // 'articleComments'(id){
 //   const query=Articles.collection.createQuery({

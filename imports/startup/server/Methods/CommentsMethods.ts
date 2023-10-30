@@ -10,7 +10,6 @@ Meteor.methods({
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
-
     Comments.collection.insert({
         articleId: _id,
         text: text,
@@ -18,7 +17,15 @@ Meteor.methods({
     })
   },
 'comments.remove'(_id){
+  const comment=Comments.collection.findOne({_id:_id})
+  if (!this.userId||comment?.createdById!=this.userId) {
+    throw new Meteor.Error('Not authorized.');
+  }else{
+    console.log("can delete!")
     Comments.collection.remove(_id);
-}
-  
+  }
+},
+  'comments.articledelete'(id){
+    Comments.collection.remove({articleId:id})
+  }
 });
